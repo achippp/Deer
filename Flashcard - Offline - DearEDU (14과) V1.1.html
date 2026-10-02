@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flashcard tiếng Hàn DeerEDU</title>
+<style>
+:root{--bg:#eef2f8;--card:#fff;--ink:#14213d;--mute:#5b6783;--line:#d5dcea;--acc:#2f5bea;--acc-ink:#fff;--ok:#16825d;--bad:#c2410c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1626;--card:#18223a;--ink:#e8edf8;--mute:#9aa7c4;--line:#2b3a5c;--acc:#7b9bff;--acc-ink:#0f1626;--ok:#4ade9f;--bad:#fb923c}}
+:root[data-theme="dark"]{--bg:#0f1626;--card:#18223a;--ink:#e8edf8;--mute:#9aa7c4;--line:#2b3a5c;--acc:#7b9bff;--acc-ink:#0f1626;--ok:#4ade9f;--bad:#fb923c}
+*,*:before,*:after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans KR","Malgun Gothic","Apple SD Gothic Neo","Segoe UI",system-ui,sans-serif;min-height:100vh}
+main{max-width:620px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.25rem;margin:0 0 14px}
+nav{display:flex;gap:6px;margin-bottom:18px}
+nav button{flex:1;padding:10px 4px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;font:inherit;cursor:pointer}
+nav button[aria-selected=true]{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--mute);font-size:.9rem}
+.btn{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.main{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.btn.ok{border-color:var(--ok);color:var(--ok)}.btn.bad{border-color:var(--bad);color:var(--bad)}
+.deckrow{display:flex;gap:8px;align-items:stretch}
+.stage{background:var(--card);border:2px solid var(--line);border-radius:18px;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 14px;cursor:pointer;color:var(--ink);flex:1;min-width:0}
+.stage .w{font-size:clamp(2rem,10vw,3.4rem);font-weight:700;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}
+.stage .m{font-size:1.5rem;color:var(--acc);font-weight:600;overflow-wrap:anywhere}
+.stage .hint{margin-top:14px;color:var(--mute);font-size:.85rem}
+.stage.known{border-color:var(--ok)}
+.arrow{flex:none;width:44px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;font-size:2.2rem;line-height:1;padding:0}
+.arrow:active{background:var(--acc);color:var(--acc-ink)}
+.row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.row>*{flex:1;min-width:110px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input[type=text],input:not([type]),select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+select{margin-bottom:14px}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+li b{min-width:38%}li span{flex:1;color:var(--mute)}
+li.sec{display:block;margin-top:12px;font-weight:700;color:var(--acc);border-bottom:2px solid var(--acc)}
+.tick{color:var(--ok)}.bad-t{color:var(--bad)}.ok-t{color:var(--ok)}
+.empty{padding:36px 12px;text-align:center;color:var(--mute)}
+.msg{min-height:1.5em;margin-top:8px}
+#tname{margin:0 0 14px;padding-bottom:8px;border-bottom:2px solid var(--acc);font-size:1.15rem;line-height:1.3}
+section[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Flashcard tiếng Hàn DeerEDU</h1>
+<nav role="tablist">
+  <button role="tab" data-t="study" aria-selected="true">Học</button>
+  <button role="tab" data-t="test" aria-selected="false">Kiểm tra</button>
+  <button role="tab" data-t="list" aria-selected="false">Danh sách</button>
+</nav>
+
+<section id="study">
+  <label for="deck" style="margin-top:0">Chọn bài học</label>
+  <select id="deck"></select>
+  <div class="bar">
+    <span id="pos"></span>
+    <label style="display:inline;font-weight:400;margin:0"><input type="checkbox" id="onlyNew" style="width:auto"> Chỉ thẻ chưa thuộc</label>
+  </div>
+  <div class="deckrow">
+    <button class="arrow" id="prev" aria-label="Thẻ trước">&#8249;</button>
+    <button class="stage" id="stage" aria-live="polite"></button>
+    <button class="arrow" id="next" aria-label="Thẻ sau">&#8250;</button>
+  </div>
+  <div class="row"><button class="btn" id="speak">Nghe phát âm</button></div>
+  <div class="row">
+    <button class="btn bad" id="no">Chưa thuộc</button>
+    <button class="btn ok" id="yes">Đã thuộc</button>
+  </div>
+  <div class="row">
+    <button class="btn" id="shuffle">Xáo trộn thẻ</button>
+    <button class="btn" id="resetDeck">Đặt lại bài này</button>
+  </div>
+  <div class="row"><button class="btn" id="side">Đổi mặt hỏi: <span id="sideTxt">tiếng Hàn</span></button></div>
+</section>
+
+<section id="test" hidden>
+  <h2 id="tname" hidden></h2>
+  <div id="tsetup">
+    <label for="tdeck" style="margin-top:0">Bài học</label>
+    <select id="tdeck"></select>
+    <label for="tdir">Kiểu kiểm tra</label>
+    <select id="tdir"><option value="kv">Nhìn tiếng Hàn, gõ nghĩa tiếng Việt</option><option value="vk">Nhìn nghĩa tiếng Việt, gõ tiếng Hàn</option></select>
+    <label for="tn">Số câu</label>
+    <select id="tn"><option value="10">10 câu</option><option value="20">20 câu</option><option value="0">Tất cả</option></select>
+    <div class="row"><button class="btn main" id="tstart">Bắt đầu kiểm tra</button></div>
+  </div>
+  <div id="tbox" hidden>
+    <div class="bar"><span id="tpos"></span><span id="tscore"></span></div>
+    <div class="stage" id="tq" style="cursor:default;width:100%"></div>
+    <input id="ta" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Câu trả lời" style="margin-top:12px;font-size:1.15rem">
+    <div class="msg" id="tfb" role="status" style="font-weight:600"></div>
+    <div class="row"><button class="btn main" id="tcheck">Kiểm tra</button><button class="btn" id="tskip">Bỏ qua</button><button class="btn" id="tchange">Đổi bài</button></div>
+  </div>
+  <div id="tres" hidden>
+    <div class="stage" style="cursor:default;width:100%"><div class="w" id="tsum"></div></div>
+    <ul id="twrong"></ul>
+    <div class="row"><button class="btn main" id="tagain">Làm lại</button><button class="btn" id="tback">Đổi bài khác</button></div>
+  </div>
+</section>
+
+<section id="list" hidden>
+  <div class="bar"><span id="count"></span><span>Bài đang chọn ở tab Học</span></div>
+  <ul id="ul"></ul>
+</section>
+</main>
+
+<script>
+var LESSONS=[{"n":1,"ko":"안녕하세요","vi":"Xin chào","w":[{"t":"Đất nước","c":[["한국","Hàn Quốc"],["베트남","Việt Nam"],["중국","Trung Quốc"],["일본","Nhật Bản"],["미국","Mỹ"],["영국","Anh"],["독일","Đức"],["프랑스","Pháp"],["호주","Úc"],["몽골","Mông Cổ"],["인도","Ấn Độ"],["말레이시아","Malaysia"],["러시아","Nga"],["태국","Thái Lan"],["한국 사람","Người Hàn Quốc"],["한국인","Người Hàn Quốc"],["한국어","Tiếng Hàn"],["영어","Tiếng Anh"],["베트남어","Tiếng Việt"]]},{"t":"Nghề nghiệp","c":[["학생","Học sinh"],["대학생","Sinh viên"],["선생님","Thầy/cô giáo"],["회사원","Nhân viên công ty"],["은행원","Nhân viên ngân hàng"],["관광 가이드","Hướng dẫn viên du lịch"],["의사","Bác sĩ"],["약사","Dược sĩ"],["공무원","Công chức"],["주부","Nội trợ"],["승무원","Tiếp viên hàng không"],["군인","Bộ đội, quân nhân"],["경찰","Cảnh sát"],["배우","Diễn viên"],["연예인","Người nổi tiếng"],["가수","Ca sĩ"],["변호사","Luật sư"],["교수님","Giáo sư"],["통역사","Thông dịch viên"],["택시기사","Tài xế taxi"],["기사","Tài xế"]]},{"t":"Lời chào","c":[["안녕하세요? ~ 안녕하십니까?","Xin chào"],["만나서 반가워요 ~ 반갑습니다","Rất vui được gặp bạn"],["안녕히 가세요","Tạm biệt"],["안녕히 계세요","Tạm biệt"],["감사합니다 ~ 고마워요","Cảm ơn"],["죄송합니다 ~ 미안해요","Xin lỗi"],["안녕히 주무세요 ~ 잘 자요","Ngủ ngon"],["잘 부탁드립니다","Mong sẽ giúp đỡ"]]},{"t":"Khác","c":[["어느","Cái nào"],["이름","Tên"],["고향","Quê hương"],["국적","Quốc tịch"]]}]},{"n":2,"ko":"이거는 뭐예요?","vi":"Đây là cái gì?","w":[{"t":"Đồ vật","c":[["책상","Bàn"],["의자","Ghế"],["책","Sách"],["공책","Vở"],["펜","Bút mực"],["볼펜","Bút bi"],["연필","Bút chì"],["가방","Balo"],["지우개","Tẩy"],["시계","Đồng hồ"],["모자","Mũ"],["사전","Từ điển"],["카메라 ~ 사진기","Máy ảnh"],["신문","Báo"],["안경","Kính"],["우산","Ô"],["문","Cửa"],["창문","Cửa sổ"],["지도","Bản đồ"],["컴퓨터","Máy tính"],["노트북","Máy tính xách tay"],["필통","Hộp bút"],["휴대폰 ~ 핸드폰 ~ 휴대전화","Điện thoại"],["텔레비전","Tivi"],["칠판","Bảng đen"],["컵","Cốc"],["키보드","Bàn phím"],["마우스","Chuột"]]},{"t":"Khác","c":[["이거 ~ 이것","Cái này"],["그거 ~ 그것","Cái đó"],["저거 ~ 저것","Cái kia"],["있다","Có"],["없다","Không có"],["커피","Cà phê"],["빵","Bánh mì"],["물","Nước"],["용돈","Tiền tiêu vặt"],["잡지","Tạp chí"],["주스","Nước ép"],["녹차","Trà xanh"],["콜라","Coca"],["맥주","Bia"],["와인","Rượu vang"],["침대","Giường"],["방","Phòng"],["냉장고","Tủ lạnh"],["룸메이트","Bạn cùng phòng (Roommate)"],["친구","Bạn"]]}]},{"n":3,"ko":"한국어를 공부해요","vi":"Tôi học tiếng Hàn Quốc","w":[{"t":"Hoạt động","c":[["자다","Ngủ"],["공부하다","Học (học hành)"],["배우다","Học (học hành, học các kỹ năng)"],["일하다","Làm việc"],["운동하다","Vận động, tập thể dục"],["숙제(를) 하다","Làm bài tập"],["사다","Mua"],["쇼핑하다","Mua sắm"],["영화를 보다","Xem phim"],["친구를 만나다","Gặp bạn bè"],["밥을 먹다","Ăn cơm"],["커피를 마시다","Uống cafe"],["음악을 듣다","Nghe nhạc"],["책을 읽다","Đọc sách"],["이야기하다","Nói chuyện"],["가다","Đi"],["오다","Đến"],["쉬다","Nghỉ ngơi"],["좋아하다","Thích"],["싫어하다","Ghét"]]},{"t":"Địa điểm","c":[["도서관","Thư viện"],["학교","Trường học"],["대학교","Trường Đại học"],["집","Nhà"],["백화점","Trung tâm thương mại"],["공원","Công viên"],["커피숍","Quán cafe"],["극장","Nhà hát, rạp chiếu phim"],["영화관","Rạp chiếu phim"],["우체국","Bưu điện"],["회사","Công ty"],["은행","Ngân hàng"],["식당","Nhà hàng"],["시장","Chợ"],["마트","Siêu thị"]]},{"t":"Khác","c":[["앉다","Ngồi"],["닫다","Đóng"],["주다","Cho"],["서다","Đứng"],["켜다","Bật"],["고기","Thịt"],["한국 영화","Phim Hàn Quốc"],["한국어학원","Trung tâm Tiếng Hàn"],["학생식당","Nhà ăn học sinh"],["카페","Quán cafe"]]}]},{"n":4,"ko":"어디에 있어요?","vi":"Ở đâu thế?","w":[{"t":"Địa điểm","c":[["공항","Sân bay"],["우체국","Bưu điện"],["은행","Ngân hàng"],["대사관","Đại sứ quán"],["가게","Cửa hàng"],["약국","Hiệu thuốc"],["병원","Bệnh viện"],["미용실","Tiệm làm tóc"],["술집","Quán rượu"],["꽃집","Tiệm hoa"],["빵집","Tiệm bánh"],["운동장","Sân vận động"],["축구장","Sân bóng đá"],["수영장","Bể bơi"],["헬스클럽","Phòng tập gym"]]},{"t":"Vị trí","c":[["앞","Đằng trước"],["뒤","Đằng sau"],["옆","Bên cạnh"],["안","Bên trong"],["밖","Bên ngoài"],["아래 ~ 밑","Ở dưới"],["위","Bên trên"],["왼쪽","Bên trái"],["오른쪽","Bên phải"],["건너편","Phía đối diện"]]},{"t":"Khác","c":[["여기","Đây ( địa điểm)"],["거기","Đó ( địa điểm)"],["저기","Kia ( địa điểm)"],["호수","Hồ"],["하노이","Hà Nội"],["고향","Quê hương"],["인사동","Insadong (địa danh tại Hàn Quốc)"],["찻집","Quán trà"],["바다","Biển"],["구경하다","Ngắm, tham quan"],["해산물","Hải sản"],["방","Phòng"],["기숙사","Kí túc xá"],["침대","Giường"],["책상","Bàn"],["경희대학교","Đại học Kyunghee"],["사진","Bức ảnh"],["서점","Nhà sách"],["인사동","Insadong (địa danh tại Hàn Quốc)"],["서울","Seoul (địa danh tại Hàn Quốc)"]]}]},{"n":5,"ko":"주말에 친구를 만났어요","vi":"Cuối tuần tôi đã gặp bạn.","w":[{"t":"Số","c":[["일","1"],["이","2"],["삼","3"],["사","4"],["오","5"],["육","6"],["칠","7"],["팔","8"],["구","9"],["십","10"]]},{"t":"Thứ","c":[["월요일","Thứ hai"],["화요일","Thứ ba"],["수요일","Thứ tư"],["목요일","Thứ năm"],["금요일","Thứ sáu"],["토요일","Thứ bảy"],["일요일","Chủ nhật"],["평일","Ngày bình thường"],["주중","Trong tuần"],["주말","Cuối tuần"]]},{"t":"Ngày tháng","c":[["그저께","Ngày hôm kia"],["어제","Hôm qua"],["오늘","Hôm nay"],["내일","Ngày mai"],["모레","Ngày kia"],["년","Năm"],["월","Tháng"],["일","Ngày"],["시","Giờ"],["분","Phút"],["지난해 ~ 작년","Năm ngoái"],["올해","Năm nay"],["다음해 ~ 내년","Năm sau"],["지난주","Tuần trước"],["이번주","Tuần này"],["다음주","Tuần sau"],["지난달","Tháng trước"],["이번달","Tháng này"],["다음달","Tháng sau"],["2년 후","Hai năm sau"],["4년 전","Bốn năm trước"],["몇","Mấy"],["몇월","Tháng mấy, mấy tháng"],["며칠","Ngày mấy, mấy ngày"]]},{"t":"Khác","c":[["생일","Sinh nhật"],["생일 파티","Tiệc sinh nhật"],["케이크","Bánh kem"],["선물","Quà"],["노래하다 ~ 노래를 부르다","Hát"],["라면","Mỳ"],["세수하다","Rửa mặt"],["이를 닦다","Đánh răng"],["크리스마스","Giáng sinh"],["유월","Tháng sáu"],["시월","Tháng mười"],["시험","Bài kiểm tra"],["시험을 보다","Làm bài kiểm tra"],["끝나다","Kết thúc"],["여행가다 / 여행하다","Du lịch"],["음력","Âm lịch"],["설날","Tết"],["세배하다","Lạy chào (vào ngày Tết)"],["떡국","Canh bánh gạo"],["추석","Trung thu"],["차례를 지내다","Cúng lễ tổ tiên"],["송편","Bánh songpyeon (Bánh trung thu của người Hàn)"],["가족","Gia đình"]]}]},{"n":6,"ko":"얼마예요?","vi":"Bao nhiêu vậy ạ?","w":[{"t":"Món ăn","c":[["비빔밥","Cơm trộn"],["갈비탕","Canh sườn"],["김밥","Cơm cuộn"],["김치찌개","Canh kim chi"],["냉면","Mì lạnh"],["불고기","Món Bulgogi"],["라면","Mì tôm"],["샌드위치","Sandwich"],["스파게티","Mỳ Ý"],["피자","Pizza"],["햄버거","Hamburger"],["딸기","Dâu tây"],["귤","Quả quýt"],["사과","Quả táo"],["수박","Dưa hấu"],["바나나","Chuối"]]},{"t":"Vị","c":[["맛있다","Ngon"],["맛없다","Không ngon"],["달다","Ngọt"],["짜다","Mặn"],["맵다","Cay"],["쓰다","Đắng"],["시다","Chua"],["싱겁다","Nhạt"],["많다","Nhiều"],["적다","Ít"],["좋다","Tốt/Thích"],["싫다","Không thích"],["복잡하다","Đông đúc, phức tạp"]]},{"t":"Số đếm","c":[["십","10"],["백","100"],["천","1,000"],["만","10,000"],["십만","100,000"],["백만","1,000,000"],["천만","10,000,000"],["억","100,000,000"],["십억","1 Tỷ"],["원","Won (đơn vị tiền Hàn)"],["동","Đồng (đơn vị tiền Việt)"]]},{"t":"Danh từ đơn vị","c":[["개","Cái, quả"],["마리","Con"],["권","Quyển"],["그릇","Bát"],["잔","Chén"],["병","Chai"],["벌","Bộ (quần áo)"],["장","Tờ,trang, tấm (vé)"]]}]},{"n":7,"ko":"날씨가 어떻습니까?","vi":"Thời tiết như thế nào?","w":[{"t":"Thời tiết","c":[["덥다","Nóng"],["춥다","Lạnh"],["따뜻하다","Ấm"],["쌀쌀하다","Se lạnh"],["비가 내리다","Mưa"],["비가 그치다","Tạnh mưa"],["눈이 내리다","Tuyết rơi"],["눈이 그치다","Tuyết ngừng rơi"],["맑다","Trong lành"],["흐리다","U ám"],["바람이 불다","Gió thổi"],["구름이 끼다","Sương mù giăng"]]},{"t":"Mùa","c":[["봄","Mùa xuân"],["여름","Mùa hè"],["가을","Mùa thu"],["겨울","Mùa đông"]]},{"t":"Tính từ","c":[["짧다","Ngắn"],["길다","Dài"],["많다","Nhiều"],["적다","Ít"],["두껍다","Dày"],["얇다","Mỏng"],["무겁다","Nặng"],["가볍다","Nhẹ"],["쉽다","Dễ"],["어렵다","Khó"],["편하다","Thoải mái"],["불편하다","Không thoải mái"]]},{"t":"Khác","c":[["돕다","Giúp đỡ"],["곱다","Xinh đẹp"],["잡다","Bắt, nắm"],["좁다","Chật, hẹp"],["화려하다","Sặc sỡ, diêm dúa"],["단순하다","Đơn giản"]]}]},{"n":8,"ko":"영화 볼까요?","vi":"Đi xem phim nhé?","w":[{"t":"Sở thích","c":[["골프를 치다","Đánh gôn"],["당구를 치다","Đánh bida"],["테니스를 치다","Chơi tennis"],["기타를 치다","Đánh guitar"],["피아노를 치다","Đánh đàn piano"],["배드민턴을 치다","Đánh cầu lông"],["볼링을 치다","Chơi bowling"],["자전거를 타다","Đi xe đạp"],["스키를 타다","Trượt tuyết"],["스케이트를 타다","Trượt băng"],["게임을 하다","Chơi game"],["농구를 하다","Chơi bóng rổ"],["축구를 하다","Đá bóng"],["수영하다","Bơi"],["조깅하다","Đi bộ"],["야구하다","Chơi bóng chày"],["책 읽기","Đọc sách"],["독서","Đọc sách"],["사진 찍기","Chụp ảnh"],["그림을 그리기","Vẽ tranh"],["음악 감상","Nghe nhạc"],["여행","Du lịch"],["운동","Vận động, thể thao"],["영화 보기","Xem phim"],["우표 수집","Sưu tập tem"],["우표 모으기","Sưu tập tem"],["컴퓨터 게임","Chơi game"]]},{"t":"Hoạt động cuối tuần","c":[["낮잠을 자다","Ngủ trưa"],["등산을 하다","Leo núi"],["산책을 하다","Dạo bộ"],["여행을 하다/가다","Đi du lịch"],["노래방에 가다","Đến quán karaoke"],["찜질방에 가다","Đến phòng tắm hơi"]]}]},{"n":9,"ko":"이분은 누구세요?","vi":"Vị này là ai thế?","w":[{"t":"Gia đình","c":[["할아버지","Ông nội"],["외할아버지","Ông ngoại"],["할머니","Bà nội"],["외할머니","Bà ngoại"],["아버지/아빠","Bố"],["어머니/엄마","Mẹ"],["오빠/형","Anh"],["언니/누나","Chị"],["(남/여)동생","Em (trai/gái)"],["아내","Vợ"],["남편","Chồng"],["딸","Con gái"],["아들","Con trai"],["큰아버지","Bác"],["작은 아버지","Chú (đã kết hôn)"],["고모","Cô"],["삼촌","Chú (chưa kết hôn)"],["사촌","Em họ"],["친척","Họ hàng"]]},{"t":"Kính ngữ","c":[["댁","Nhà (Kính ngữ của 집)"],["연세","Tuổi (Kính ngữ của 나이)"],["성함","Tên (Kính ngữ của 이름)"],["분","Vị (Kính ngữ của 사람)"],["계시다/있으시다","Ở/Có (Kính ngữ của 있다)"],["주무시다","Ngủ (Kính ngữ của 자다)"],["드시다","Dùng (bữa) (Kính ngữ của 먹다/마시다)"],["생신","Sinh nhật (Kính ngữ của 생일)"],["돌아가시다","Qua đời (Kính ngữ của 죽다)"],["말씀하시다/말씀드리다","Nói (Kính ngữ của 말하다)"]]},{"t":"Số (Thuần Hàn)","c":[["열","10"],["스물","20"],["서른","30"],["마흔","40"],["쉰","50"],["예순","60"],["일흔","70"],["여든","80"],["아흔","90"],["백","100"]]}]},{"n":10,"ko":"지금 몇 시예요?","vi":"Bây giờ là mấy giờ?","w":[{"t":"Thời gian","c":[["오전","Buổi sáng"],["오후","Buổi chiều"],["아침","Sáng/bữa sáng"],["점심","Trưa/bữa trưa"],["저녁","Tối/bữa tối"],["밤","Đêm"],["낮","Ngày"],["새벽","Sáng sớm"],["초","Giây"]]},{"t":"Hoạt động","c":[["일어나다","Thức dậy"],["이를 닦다","Đánh răng"],["세수하다","Rửa mặt"],["목욕하다","Tắm (tắm bồn)"],["샤워하다","Tắm (bằng vòi sen)"],["빨래하다","Giặt giũ"],["버스를 타다","Đi xe buýt"],["다니다","Đi lại"],["출근하다","Đi làm"],["퇴근하다","Tan làm"],["회의하다","Họp"],["컴퓨터를 하다","Dùng máy tính"],["운전하다","Lái xe"],["숙제하다","Làm bài tập"],["청소하다","Dọn dẹp"],["요리하다","Nấu ăn"],["전화하다","Gọi điện"]]}]},{"n":11,"ko":"감기에 걸렸어요.","vi":"Tôi bị cảm cúm.","w":[{"t":"Cơ thể","c":[["머리","Đầu"],["목","Cổ"],["어깨","Vai"],["팔","Cánh tay"],["손","Tay"],["가슴","Ngực"],["배","Bụng"],["허리","Eo"],["다리","Cẳng chân"],["무릎","Đầu gối"],["발가락","Ngón chân"],["발목","Cổ chân"],["얼굴","Mặt"],["눈","Mắt"],["눈썹","Lông mày"],["코","Mũi"],["입","Miệng"],["입술","Môi"],["귀","Tai"],["이마","Trán"]]},{"t":"Triệu chứng","c":[["감기에 걸리다","Bị cảm"],["독감에 걸리다","Bị cảm độc"],["기침하다","Ho"],["열이 나다","Sốt"],["콧물이 나다","Chảy nước mũi"],["배탈이 나다","Rối loạn tiêu hóa"],["소화가 안 되다","Khó tiêu"],["다치다","Bị thương"],["상처가 있다","Có vết thương"],["피가 나다","Chảy máu"],["심하다","Nghiêm trọng"],["두통","Đau đầu"],["치통","Đau răng"],["복통","Đau dạ dày"]]},{"t":"Bệnh viện","c":[["내과","Khoa nội"],["외과","Khoa ngoại"],["소아과","Khoa nhi"],["이비인후과","Khoa tai mũi họng"],["안과","Khoa mắt"],["치과","Nha khoa"],["처방하다","Kê đơn"],["처방전을 쓰다","Kê đơn, viết đơn thuốc"],["예방주사","Tiêm phòng"],["주사를 맞다","Tiêm"],["약을 먹다","Uống thuốc"],["예방하다","Phòng ngừa"]]},{"t":"Thuốc","c":[["진통제","Thuốc giảm đau"],["소화제","Thuốc tiêu hóa"],["해열제","Thuốc hạ sốt"],["알약","Thuốc viên"],["가루약","Thuốc bột"],["물약","Thuốc nước"]]},{"t":"Biểu hiện thường dùng","c":[["어떻게 오셨어요?","Tôi có thể giúp gì cho anh/chị?"],["어디가 아프세요?","Anh/chị đau ở đâu?"],["어떻게 아프세요?","Anh/chị đau thế nào?"],["증상이 어떠세요?","Triệu chứng của anh/chị thế nào?"]]}]},{"n":12,"ko":"여보세요.","vi":"Alo","w":[{"t":"Điện thoại","c":[["집 전화","Điện thoại nhà"],["공중전화","Điện thoại công cộng"],["휴대전화","Điện thoại di động"],["전화번호","Số điện thoại"],["전화 요금","Cước điện thoại"],["국내 전화","Điện thoại trong nước"],["국제 전화","Điện thoại quốc tế"],["연락처","Số liên lạc"],["전화 카드","Thẻ điện thoại"],["국가 번호","Mã quốc gia"],["지역 번호","Mã khu vực"],["전화하다","Gọi điện thoại"],["전화를 걸다","Gọi điện thoại"],["전화를 받다","Nghe máy"],["전화를 끊다","Cúp máy"],["문자를 보내다","Gửi tin nhắn"],["문자를 받다","Nhận tin nhắn"],["전화가 오다","Có cuộc gọi tới"],["전화를 바꾸다","Chuyển máy"],["통화 중이다","Máy bận"],["답장을 받다","Nhận tin trả lời"],["답장을 보내다","Trả lời tin nhắn"]]},{"t":"Biểu hiện thường gặp","c":[["안녕하세요?","Chào anh/chị"],["거기…지요?","Đó có phải…không ạ?"],["…계세요?","…có ở đó không ạ?"],["…에게 바꿔 주시겠어요?","Chuyện máy cho…giúp tôi nhé?"],["말씀 좀 전해 주세요.","Chuyển lời nhắn giúp tôi với."],["다시 전화하겠습니다.","Tôi sẽ gọi lại sau."],["여보세요?","Alo"],["실례지만 누구세요?","Xin lỗi ai đấy ạ?"],["지금 없습니다.","Bây giờ không có ở đây ạ."],["잠깐 외출하셨어요.","Đi ra ngoài một lúc rồi ạ."],["말씀 전해 드리겠습니다.","Tôi sẽ chuyển lời."],["누구라고 전해 드릴까요?","Tôi sẽ nhắn lại là ai gọi đến ạ?"]]}]},{"n":13,"ko":"미딩으로 가 주세요.","vi":"Hãy cho tôi tới Mỹ Đình","w":[{"t":"Phương tiện giao thông","c":[["기차","Tàu hỏa"],["지하철","Tàu điện ngầm"],["비행기","Máy bay"],["배","Tàu biển"],["자전거","Xe đạp"],["오토바이","Xe máy"],["택시","Taxi"],["모범택시","Taxi cao cấp"],["개인택시","Taxi cá nhân"],["버스","Xe buýt"],["버스 정류장","Trạm xe buýt"],["고속버스","Xe buýt cao tốc"],["시내버스","Xe buýt nội thành"],["버스 터미널","Bến xe"],["마을버스","Xe buýt tuyến ngắn"],["요금","Phí,cước"],["교통 카드","Thẻ giao thông"],["지하도","Đường hầm"],["신호등","Đèn giao thông"],["고속도로","Đường cao tốc"],["타다","Đi (phương tiện)"],["매표소","Quầy bán vé"],["지하철역","Ga tàu điện ngầm"],["지하철 노선도","Bản đồ tuyến tàu"],["기차역","Ga tàu hỏa"],["공항","Sân bay"],["주차장","Bãi đỗ xe"],["주유소","Trạm đổ xăng"],["횡단보도","Vạch sang đường"],["육교","Cầu vượt"],["갈아타다","Đổi (phương tiện)"],["길이 막히다","Tắc đường"],["시간이 걸리다","Mất thời gian"],["교통사고가 나다","Xảy ra tai nạn giao thông"],["내리다","Xuống (phương tiện)"]]}]},{"n":14,"ko":"이 옷을 입어 보세요","vi":"Hãy thử mặc chiếc áo này.","w":[{"t":"Quần áo","c":[["셔츠","Sơ mi"],["티셔츠","Áo phông"],["청바지","Quần bò"],["반바지","Quần đùi"],["바지","Quần dài"],["양복","Âu phục"],["치마/스커트","Chân váy"],["원피스","Váy dài"],["블라우스","Áo sơ mi nữ"],["레깅스","Quần legging"],["가디건","Cardigan"],["스카프","Khăn quàng cổ"],["장갑","Găng tay"],["벨트","Thắt lưng"],["선글라스","Kính râm"],["모자","Mũ"],["시계","Đồng hồ"],["핸드백","Túi xách"],["구두","Giày da"],["운동화","Giày thể thao"],["하이힐","Giày cao gót"],["샌들","Xăng đan"],["신다","Đi (giày,tất)"],["쓰다","Đội, đeo (mũ,kính)"],["두르다","Đeo (khăn choàng)"],["입다","Mặc"],["끼다","Đeo (nhẫn)"],["차다","Đeo (đồng hồ)"]]},{"t":"Tính từ miêu tả sự vật","c":[["크다","To"],["작다","Nhỏ"],["길다","Dài"],["짧다","Ngắn"],["높다","Cao"],["낮다","Thấp"],["비싸다","Đắt"],["싸다","Rẻ"],["불편하다","Không thoải mái"],["편하다","Thoải mái"],["두껍다","Dày"],["얇다","Mỏng"]]},{"t":"Tính từ miêu tả con người","c":[["멋있다","Ngầu"],["예쁘다","Đẹp"],["귀엽다","Dễ thương"],["친절하다","Thân thiện"],["똑똑하다","Thông minh"],["부드럽다","Mềm mại, Dịu dàng"],["착하다","Tốt bụng"],["용감하다","Dũng cảm"],["효도하다","Hiếu thảo"],["따뜻하다","Ấm áp"],["차갑다","Lạnh lùng"],["까다롭다","Khó tính, cầu kỳ"],["마음이 나쁘다","Xấu tính"],["마음이 좋다","Tốt tính"],["자상하다","Chu đáo"],["거만하다","Tự đắc, kiêu ngạo"],["예민하다","Nhạy cảm"],["꼼꼼하다","Tỉ mỉ"],["감성적이다","Giàu tình cảm"],["이기적이다","Ích kỷ"],["내성적이다","Hướng nội"],["외향적이다","Hướng ngoại"],["낭만적이다","Lãng mạn"]]}]},{"n":15,"ko":"여행을 가고 싶어요.","vi":"Tôi muốn đi du lịch.","w":[{"t":"Chuẩn bị du lịch","c":[["계획을 세우다","Lên kế hoạch"],["돈을 바꾸다/환전하다","Đổi tiền"],["비행기표를 예매하다","Đặt trước vé máy bay"],["여권을 만들다","Làm hộ chiếu"],["비자를 받다","Nhận visa"],["호텔을 예약하다","Đặt trước khách sạn"],["비상약","Thuốc dự phòng"],["신용카드","Thẻ tín dụng"],["슬리퍼","Dép lê"],["세면도구","Đồ rửa mặt"],["선글라스","Kính râm"],["카메라","Camera"],["캐리어","Vali"],["여행가방","Vali"],["여행비","Chi phí du lịch"],["숙박료","Chi phí ở"]]},{"t":"Du lịch","c":[["출발하다","Xuất phát"],["도착하다","Đến"],["여행을 하다/가다","Du lịch"],["돌아오다","Trở về"],["국내여행","Du lịch trong nước"],["해외여행","Du lịch nước ngoài"],["가족여행","Du lịch gia đình"],["신혼여행","Du lịch trăng mật"],["배낭여행","Du lịch balo"],["여행 상품","Sản phẩm du lịch"],["민박","Ở nhà dân"],["게스트 하우스","Guest house"],["1박 2일","2 ngày 1 đêm"],["관광지","Địa điểm du lịch"],["입장료","Phí vào cửa"],["여행사","Công ty du lịch"],["예약","Đặt trước (chỗ ở, nhà hàng, tour…)"],["예매","Mua trước ( vé xem phim,tàu, …)"],["조식","Bữa sáng"],["보험","Bảo hiểm"]]},{"t":"Hoạt động du lịch","c":[["캠핑하다","Cắm trại"],["야경을 보다","Ngắm cảnh đêm"],["단풍을 구경하다","Ngắm lá vàng"],["해수욕을 하다","Tắm biển"],["낚시하다","Câu cá"]]}]},{"n":16,"ko":"우리 집에 올 수 있어요?","vi":"Bạn có thể tới nhà tôi không?","w":[{"t":"Lời mời","c":[["초대하다","Mời"],["선물하다 ~ 선물을 주다","Tặng quà"],["식사하다","Ăn, dùng bữa"],["연락하다","Liên lạc"],["준비하다","Chuẩn bị"],["계획하다","Lên kế hoạch"],["축하하다","Chúc mừng"],["약속을 지키다","Giữ lời hứa"],["약속을 취소하다","Hủy hẹn"]]},{"t":"Phó từ","c":[["늦게","Muộn"],["일찍","Sớm"],["많이","Nhiều"],["조금","Một chút"],["열심히","Một cách chăm chỉ"],["빨리","Một cách nhanh chóng"],["천천히","Một cách chậm rãi"],["잘","Tốt"],["더","Hơn"],["아마","Có lẽ"],["별로","Không…mấy, hầu như không…"],["안","Không"],["아주","Rất"],["다시","Lại"],["꼭","Nhất định"],["아직","Vẫn chưa…"]]}]}];
+(function(){
+var KEY="flashcard-giao-trinh-v1",known={};
+try{known=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){known={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(known))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+var ALL=[];
+LESSONS.forEach(function(L){L.cards=[];L.w.forEach(function(s){s.c.forEach(function(p){var c={k:p[0],v:p[1],s:s.t,n:L.n,id:L.n+"|"+p[0]+"|"+p[1]};L.cards.push(c);ALL.push(c)})})});
+function deckCards(n){return n==="all"?ALL:ALL.filter(function(c){return String(c.n)===n})}
+function fillSel(s,keep){
+  s.innerHTML="";
+  function o(v,lab,nm){var e=document.createElement("option");e.value=v;e.textContent=lab;e.dataset.name=nm;s.appendChild(e)}
+  o("all","Tất cả các bài ("+ALL.length+" từ)","Tất cả các bài");
+  LESSONS.forEach(function(L){var nm="Bài "+L.n+": "+L.ko+" – "+L.vi;o(String(L.n),nm+" ("+L.cards.length+" từ)",nm)});
+  s.value=keep;
+}
+var sel=$("deck"),deck="1",cur=[],idx=0,flipped=false,front="k",order=[];
+function pool(){var a=[];cur.forEach(function(c,i){if(!$("onlyNew").checked||!known[c.id])a.push(i)});return a}
+function rebuild(keep){order=pool();if(!keep)idx=0;if(idx>=order.length)idx=0;flipped=false}
+function show(){
+  var st=$("stage");
+  if(!order.length){st.className="stage";st.innerHTML='<div class="empty"></div>';st.firstChild.textContent=cur.length?"Bạn đã thuộc hết thẻ ở bài này. Bỏ chọn bộ lọc để học lại.":"Chưa có thẻ nào.";$("pos").textContent="0 thẻ";return}
+  var c=cur[order[idx]],q=front==="k"?c.k:c.v,a=front==="k"?c.v:c.k;
+  st.className="stage"+(known[c.id]?" known":"");
+  st.innerHTML=flipped?'<div class="m"></div>':'<div class="w"></div><div class="hint">Bấm vào thẻ hoặc nhấn phím cách để lật</div>';
+  st.firstChild.textContent=flipped?a:q;
+  $("pos").textContent="Thẻ "+(idx+1)+" / "+order.length+(c.s?" · "+c.s:"")+(known[c.id]?" · đã thuộc":"");
+}
+function flip(){if(order.length){flipped=!flipped;show()}}
+function move(d){if(!order.length)return;idx=(idx+d+order.length)%order.length;flipped=false;show()}
+function mark(v){
+  if(!order.length)return;var c=cur[order[idx]];
+  if(v)known[c.id]=1;else delete known[c.id];
+  save();if($("onlyNew").checked)rebuild(true);else{idx=(idx+1)%order.length;flipped=false}
+  show();renderList();
+}
+function speak(){if(!order.length||!window.speechSynthesis)return;var t=cur[order[idx]].k.split(/~|\//)[0].replace(/\([^)]*\)|…|\.\.\./g,"");var u=new SpeechSynthesisUtterance(t);u.lang="ko-KR";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}
+function renderList(){
+  var ul=$("ul");ul.innerHTML="";
+  $("count").textContent=cur.length+" từ, "+cur.filter(function(c){return known[c.id]}).length+" đã thuộc";
+  var last=null;
+  cur.forEach(function(c){
+    var tag=(deck==="all"?"Bài "+c.n+(c.s?" · ":""):"")+c.s;
+    if(tag!==last){last=tag;var h=document.createElement("li");h.className="sec";h.textContent=tag||"Từ vựng";ul.appendChild(h)}
+    var li=document.createElement("li"),b=document.createElement("b"),s=document.createElement("span");
+    b.textContent=c.k;s.textContent=c.v+(known[c.id]?" ✓":"");if(known[c.id])s.className="tick";
+    li.appendChild(b);li.appendChild(s);ul.appendChild(li)});
+}
+fillSel(sel,deck);cur=deckCards(deck);
+sel.onchange=function(){deck=sel.value;cur=deckCards(deck);rebuild();show();renderList()};
+$("stage").onclick=flip;$("prev").onclick=function(){move(-1)};$("next").onclick=function(){move(1)};
+$("yes").onclick=function(){mark(true)};$("no").onclick=function(){mark(false)};$("speak").onclick=speak;
+$("onlyNew").onchange=function(){rebuild();show()};
+$("resetDeck").onclick=function(){if(confirm("Đặt lại bài này về chưa thuộc?")){cur.forEach(function(c){delete known[c.id]});save();rebuild();show();renderList()}};
+$("shuffle").onclick=function(){for(var i=order.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=order[i];order[i]=order[j];order[j]=t}idx=0;flipped=false;show()};
+$("side").onclick=function(){front=front==="k"?"v":"k";$("sideTxt").textContent=front==="k"?"tiếng Hàn":"tiếng Việt";flipped=false;show()};
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){
+  document.querySelectorAll("nav button").forEach(function(x){x.setAttribute("aria-selected",x===b)});
+  ["study","test","list"].forEach(function(s){$(s).hidden=s!==b.dataset.t})}});
+document.addEventListener("keydown",function(e){
+  if(!$("study").hidden&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){
+    if(e.key===" "){e.preventDefault();flip()}else if(e.key==="ArrowRight")move(1);else if(e.key==="ArrowLeft")move(-1)}});
+
+/* ===== Kiểm tra ===== */
+var tsel=$("tdeck");fillSel(tsel,"1");
+var qs=[],qi=0,sc=0,wr=[],done=false,tcards=[];
+function nv(t){return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim()}
+function nk(t){return t.normalize("NFC").replace(/[\s?.!,()~\/…]/g,"")}
+function okVi(ans,v){
+  var a=nv(ans);if(!a)return false;
+  var base=v.replace(/\([^)]*\)/g,"").trim(),alts=base.split(",");alts.push(base);
+  if(base.indexOf("/")>-1&&base.split(/\s+/).length<=4)base.split("/").forEach(function(x){alts.push(x)});
+  return alts.some(function(x){return nv(x)===a});
+}
+function altsKo(k){var b=k.replace(/\([^)]*\)/g,"").replace(/…|\.\.\./g,""),r=[k,b];b.split(/~|\//).forEach(function(x){r.push(x)});return r}
+function isRight(ans,q,dir){
+  if(dir==="kv")return okVi(ans,q.v);
+  var a=nk(ans);if(!a)return false;
+  return tcards.some(function(c){return c.v===q.v&&altsKo(c.k).some(function(x){return nk(x)===a})});
+}
+function showQ(){
+  var q=qs[qi],dir=$("tdir").value;
+  $("tpos").textContent="Câu "+(qi+1)+" / "+qs.length+(q.s?" · "+q.s:"");$("tscore").textContent="Đúng: "+sc;
+  $("tq").innerHTML=dir==="kv"?'<div class="w"></div>':'<div class="m"></div>';
+  $("tq").firstChild.textContent=dir==="kv"?q.k:q.v;
+  var a=$("ta");a.value="";a.disabled=false;a.placeholder=dir==="kv"?"Gõ nghĩa tiếng Việt":"Gõ từ tiếng Hàn";a.focus();
+  $("tfb").textContent="";$("tfb").className="msg";$("tcheck").textContent="Kiểm tra";$("tskip").hidden=false;done=false;
+}
+function finish(){
+  $("tbox").hidden=true;$("tres").hidden=false;$("tsum").textContent=sc+" / "+qs.length;
+  var ul=$("twrong");ul.innerHTML="";
+  if(!wr.length){ul.innerHTML='<li class="empty" style="display:block">Bạn trả lời đúng tất cả. Rất tốt!</li>';return}
+  wr.forEach(function(c){var li=document.createElement("li"),b=document.createElement("b"),s=document.createElement("span");b.textContent=c.k;s.textContent=c.v;li.appendChild(b);li.appendChild(s);ul.appendChild(li)});
+}
+function act(skip){
+  if(done){qi++;if(qi>=qs.length)finish();else showQ();return}
+  var q=qs[qi],dir=$("tdir").value,right=!skip&&isRight($("ta").value,q,dir);
+  if(right)sc++;else wr.push(q);
+  var fb=$("tfb");fb.className="msg "+(right?"ok-t":"bad-t");
+  fb.textContent=right?"Đúng rồi! "+q.k+" = "+q.v:(skip?"Đáp án: ":"Chưa đúng. Đáp án: ")+q.k+" = "+q.v;
+  $("tscore").textContent="Đúng: "+sc;$("ta").disabled=true;
+  $("tcheck").textContent=qi+1>=qs.length?"Xem kết quả":"Câu tiếp";$("tskip").hidden=true;done=true;
+}
+function start(){
+  tcards=deckCards(tsel.value).slice();
+  var a=tcards.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}
+  var n=parseInt($("tn").value,10);qs=n?a.slice(0,n):a;qi=0;sc=0;wr=[];
+  $("tname").textContent=tsel.options[tsel.selectedIndex].dataset.name;$("tname").hidden=false;
+  $("tsetup").hidden=true;$("tres").hidden=true;$("tbox").hidden=false;showQ();
+}
+$("tstart").onclick=start;$("tagain").onclick=start;
+$("tback").onclick=function(){$("tres").hidden=true;$("tbox").hidden=true;$("tname").hidden=true;$("tsetup").hidden=false};
+$("tchange").onclick=function(){if(sc+wr.length>0&&!confirm("Thoát bài kiểm tra hiện tại để chọn bài khác?"))return;$("tback").onclick()};
+$("tcheck").onclick=function(){act(false)};$("tskip").onclick=function(){act(true)};
+$("ta").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();act(false)}});
+rebuild();show();renderList();
+})();
+</script>
+</body>
+</html>
